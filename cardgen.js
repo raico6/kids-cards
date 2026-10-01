@@ -163,7 +163,7 @@
       if (total <= maxW) break;
       size -= 8;
     } while (size > 140);
-    const y = 420;
+    const y = 450;
     const x0 = (W - total) / 2;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.lineWidth = Math.max(14, Math.round(size * 0.055)); ctx.lineJoin = 'round';
@@ -173,7 +173,7 @@
     const ipa = LETTER_IPA[L] || '';
     if (ipa) {
       const ipaSize = fitText(ctx, ipa, W - 180, 86, '700', IPA_FONT);
-      ctx.textBaseline = 'middle'; ctx.fillStyle = main; ctx.fillText(ipa, W / 2, 720 - (86 - ipaSize) * 0.15);
+      ctx.textBaseline = 'middle'; ctx.fillStyle = main; ctx.fillText(ipa, W / 2, 680 - (86 - ipaSize) * 0.15);
     }
     return canvas;
   }
