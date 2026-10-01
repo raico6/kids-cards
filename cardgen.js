@@ -131,23 +131,49 @@
     return canvas;
   }
 
-  function renderLetterCard(canvas, letter, firstItem) {
+  // US letter names. A lone "A" is often spoken as the article "uh", so speech uses a respelling.
+  const LETTER_IPA = {
+    A: '/eɪ/', B: '/biː/', C: '/siː/', D: '/diː/', E: '/iː/', F: '/ɛf/', G: '/dʒiː/', H: '/eɪtʃ/',
+    I: '/aɪ/', J: '/dʒeɪ/', K: '/keɪ/', L: '/ɛl/', M: '/ɛm/', N: '/ɛn/', O: '/oʊ/', P: '/piː/',
+    Q: '/kjuː/', R: '/ɑːr/', S: '/ɛs/', T: '/tiː/', U: '/juː/', V: '/viː/', W: '/ˈdʌbəljuː/', X: '/ɛks/',
+    Y: '/waɪ/', Z: '/ziː/'
+  };
+  const LETTER_SAY = {
+    A: 'ay', B: 'bee', C: 'see', D: 'dee', E: 'ee', F: 'eff', G: 'gee', H: 'aitch',
+    I: 'eye', J: 'jay', K: 'kay', L: 'ell', M: 'em', N: 'en', O: 'oh', P: 'pee',
+    Q: 'cue', R: 'are', S: 'ess', T: 'tee', U: 'you', V: 'vee', W: 'double you', X: 'ex',
+    Y: 'why', Z: 'zee'
+  };
+  const IPA_FONT = '"Noto Sans","Segoe UI","Arial","PingFang SC","Noto Sans CJK SC",sans-serif';
+
+  function renderLetterCard(canvas, letter) {
     canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext('2d');
-    const L = letter.toUpperCase();
+    const L = String(letter || 'A').toUpperCase();
+    const lower = L.toLowerCase();
     const [main, light] = letterPalette(L);
     background(ctx, main, light, hash('letter' + L));
+    let size = 360;
+    const maxW = W - 200;
+    let lw, rw, gap, total;
+    do {
+      ctx.font = `900 ${size}px ${FONT}`;
+      lw = ctx.measureText(L).width; rw = ctx.measureText(lower).width;
+      gap = size * 0.2; total = lw + gap + rw;
+      if (total <= maxW) break;
+      size -= 8;
+    } while (size > 140);
+    const y = 420;
+    const x0 = (W - total) / 2;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.font = `900 400px ${FONT}`;
-    ctx.lineWidth = 22; ctx.strokeStyle = light; ctx.strokeText(L + L.toLowerCase(), W / 2, 380);
-    ctx.fillStyle = main; ctx.fillText(L + L.toLowerCase(), W / 2, 380);
-    if (firstItem && firstItem.en) {
-      const emoji = (firstItem.emoji && firstItem.emoji.trim()) || lookupEmoji(firstItem.en);
-      if (emoji) drawEmoji(ctx, emoji, W / 2, 680, 170);
-      else { const [m2, l2] = paletteFor(firstItem.en); drawFallback(ctx, firstItem.en, m2, l2, W / 2, 680, 90); }
-      const phrase = `${L} is for ${firstItem.en}`;
-      ctx.textBaseline = 'alphabetic'; fitText(ctx, phrase, W - 160, 84); ctx.fillStyle = '#444'; ctx.fillText(phrase, W / 2, 870);
-      if (firstItem.zh) { ctx.font = `700 46px ${FONT}`; ctx.fillStyle = '#888'; ctx.fillText(firstItem.zh, W / 2, 925); }
+    ctx.lineWidth = Math.max(14, Math.round(size * 0.055)); ctx.lineJoin = 'round';
+    ctx.strokeStyle = light; ctx.fillStyle = main;
+    ctx.strokeText(L, x0 + lw / 2, y); ctx.fillText(L, x0 + lw / 2, y);
+    ctx.strokeText(lower, x0 + lw + gap + rw / 2, y); ctx.fillText(lower, x0 + lw + gap + rw / 2, y);
+    const ipa = LETTER_IPA[L] || '';
+    if (ipa) {
+      const ipaSize = fitText(ctx, ipa, W - 180, 86, '700', IPA_FONT);
+      ctx.textBaseline = 'middle'; ctx.fillStyle = main; ctx.fillText(ipa, W / 2, 720 - (86 - ipaSize) * 0.15);
     }
     return canvas;
   }
@@ -158,5 +184,8 @@
     document.body.appendChild(a); a.click(); a.remove();
   }
 
-  window.CardGen = { W, H, renderWordCard, renderLetterCard, lookupEmoji, downloadCanvas, letterPalette, paletteFor };
+  function letterIpa(letter) { return LETTER_IPA[String(letter || '').toUpperCase()] || ''; }
+  function letterSay(letter) { return LETTER_SAY[String(letter || '').toUpperCase()] || String(letter || ''); }
+
+  window.CardGen = { W, H, renderWordCard, renderLetterCard, lookupEmoji, downloadCanvas, letterPalette, paletteFor, letterIpa, letterSay };
 })();
