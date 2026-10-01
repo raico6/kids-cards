@@ -56,6 +56,7 @@
     </div>
     <div id="wordList" class="word-list"></div>
     <button id="addWord" class="pill add">＋ 添加单词</button>
+    <button id="openPrint" class="pill print-open">🖨 打印闪卡</button>
     <div class="set-actions">
       <button id="exportBtn" class="pill">导出 JSON</button>
       <label class="pill">导入 JSON<input id="importFile" type="file" accept="application/json,.json" hidden></label>
@@ -63,6 +64,29 @@
       <button id="resetAll" class="pill warn">全部恢复默认</button>
     </div>
     <p class="set-hint">提示：iPhone/iPad 请先关闭"静音模式"并调高音量才能听到发音。</p>
+  </section>
+
+  <!-- PRINT (parent only) -->
+  <section id="print" class="screen print-screen">
+    <div class="print-toolbar">
+      <div class="set-top">
+        <button id="printBack" class="pill">← 返回</button>
+        <h2>打印闪卡</h2>
+      </div>
+      <p class="set-hint">A4，每页 6 张（2×3）。用的是当前卡片图（含本机改过的单词）：大图、英文、小字中文。沿浅色虚线剪开。系统打印框里可存成 PDF，并关掉页眉页脚。</p>
+      <div class="print-opts">
+        <label class="pill small"><input id="incLetter" type="checkbox" checked> 字母卡</label>
+        <label class="pill small"><input id="incWord" type="checkbox" checked> 单词卡</label>
+        <button id="doPrint" class="pill print-go">打印 / 保存 PDF</button>
+      </div>
+      <div class="print-letter-bar">
+        <button id="lettersAll" class="pill small">全选字母</button>
+        <button id="lettersNone" class="pill small">清空</button>
+        <span id="printCount" class="set-hint"></span>
+      </div>
+      <div id="printLetters" class="letter-picker"></div>
+    </div>
+    <div id="printPages" class="print-pages"></div>
   </section>
 
   <script src="emoji-map.js"></script>

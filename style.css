@@ -82,3 +82,59 @@ button { font-family: inherit; cursor: pointer; border: none; touch-action: mani
 .word-row .emoji-in { width: 90px; }
 .word-row .row-btns { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .set-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.pill.print-open { background: #54A0FF; color: #fff; border-color: #54A0FF; width: 100%; margin: 8px 0 4px; font-size: 18px; }
+.pill.print-go { background: #54A0FF; color: #fff; border-color: #54A0FF; }
+.pill:disabled { opacity: .4; cursor: default; }
+
+/* PRINT preview (parent). Printed page is styled in @media print. */
+.print-screen { background: #e7e1d4; }
+.print-toolbar { position: sticky; top: 0; z-index: 2; background: #fffaf0; margin: 0 -14px; padding: 0 14px 8px; border-bottom: 1px solid #eadfC4; }
+.print-opts, .print-letter-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
+.print-opts label { gap: 6px; cursor: pointer; }
+.print-opts input { width: 18px; height: 18px; }
+.print-letter-bar .set-hint { margin: 0; }
+.print-pages { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 14px 0 32px; }
+.print-empty { color: #888; text-align: center; padding: 28px 8px; }
+.print-page {
+  width: min(194mm, 100%); aspect-ratio: 210 / 297; background: #fff;
+  box-shadow: 0 2px 12px rgba(0,0,0,.12); padding: 3.6%; box-sizing: border-box;
+  display: flex;
+}
+.print-grid {
+  flex: 1; min-width: 0; min-height: 0;
+  display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr 1fr;
+  border-top: 1px dashed #c5c5c5; border-left: 1px dashed #c5c5c5;
+}
+.print-card {
+  min-width: 0; min-height: 0; padding: 1.6%;
+  border-right: 1px dashed #c5c5c5; border-bottom: 1px dashed #c5c5c5;
+  display: flex; align-items: center; justify-content: center;
+  break-inside: avoid; page-break-inside: avoid;
+}
+.print-card img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+@media print {
+  @page { size: A4 portrait; margin: 0; }
+  html, body {
+    height: auto !important; background: #fff !important; overflow: visible !important;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .screen { display: none !important; }
+  #print {
+    display: block !important; background: #fff !important;
+    min-height: 0 !important; padding: 0 !important;
+  }
+  .print-toolbar, .print-empty, .parent-btn, .toast { display: none !important; }
+  .print-pages { display: block; padding: 0; gap: 0; }
+  .print-page {
+    width: 210mm; height: 297mm; aspect-ratio: auto; box-shadow: none;
+    padding: 8mm; margin: 0; overflow: hidden;
+    break-after: page; page-break-after: always;
+    break-inside: avoid; page-break-inside: avoid;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .print-page:last-child { break-after: auto; page-break-after: auto; }
+  .print-grid, .print-card, .print-card img {
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+}
