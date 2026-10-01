@@ -198,15 +198,87 @@
   $('resetLetter').addEventListener('click', () => { if (confirm(`把字母 ${setLetter} 恢复为默认单词？`)) { words[setLetter] = sanitize(clone(window.DEFAULT_WORDS))[setLetter]; save(); renderEditor(); } });
   $('resetAll').addEventListener('click', () => { if (confirm('全部 26 个字母恢复为默认单词？自定义内容将丢失。')) { words = sanitize(clone(window.DEFAULT_WORDS)); save(); renderEditor(); } });
 
+  // ---------- print (parent): A4, 2×3, same canvas cards ----------
+  const PRINT_COLS = 2, PRINT_ROWS = 3, PRINT_PER = PRINT_COLS * PRINT_ROWS;
+  const printOn = {};
+  LETTERS.forEach(L => { printOn[L] = true; });
+  function printItems() {
+    const wantL = $('incLetter').checked, wantW = $('incWord').checked, items = [];
+    LETTERS.forEach(L => {
+      if (!printOn[L]) return;
+      if (wantL) items.push({ type: 'letter', L });
+      if (wantW) usable(L).forEach(w => items.push({ type: 'word', L, w }));
+    });
+    return items;
+  }
+  function paintPrintCard(item) {
+    const canvas = document.createElement('canvas');
+    if (item.type === 'letter') CardGen.renderLetterCard(canvas, item.L, usable(item.L)[0]);
+    else CardGen.renderWordCard(canvas, item.w);
+    const img = document.createElement('img');
+    img.alt = item.type === 'letter' ? `${item.L} letter` : `${item.w.en} ${item.w.zh || ''}`.trim();
+    img.src = canvas.toDataURL('image/png');
+    return img;
+  }
+  function renderPrint() {
+    const box = $('printLetters');
+    if (!box.childElementCount) {
+      LETTERS.forEach(L => {
+        const b = document.createElement('button');
+        b.textContent = L; b.className = printOn[L] ? 'on' : '';
+        b.addEventListener('click', () => { printOn[L] = !printOn[L]; renderPrint(); });
+        box.appendChild(b);
+      });
+    } else {
+      [...box.children].forEach((b, i) => b.classList.toggle('on', !!printOn[LETTERS[i]]));
+    }
+    const items = printItems();
+    const pages = $('printPages'); pages.innerHTML = '';
+    const pageCount = Math.ceil(items.length / PRINT_PER);
+    $('printCount').textContent = items.length ? `共 ${items.length} 张 · ${pageCount} 页` : '请选择字母，并勾选字母卡或单词卡';
+    $('doPrint').disabled = !items.length;
+    if (!items.length) {
+      const p = document.createElement('p'); p.className = 'print-empty'; p.textContent = '没有可打印的卡片';
+      pages.appendChild(p); return;
+    }
+    for (let p = 0; p < items.length; p += PRINT_PER) {
+      const page = document.createElement('div'); page.className = 'print-page';
+      const grid = document.createElement('div'); grid.className = 'print-grid';
+      const slice = items.slice(p, p + PRINT_PER);
+      for (let i = 0; i < PRINT_PER; i++) {
+        const cell = document.createElement('div'); cell.className = 'print-card';
+        if (slice[i]) cell.appendChild(paintPrintCard(slice[i]));
+        grid.appendChild(cell);
+      }
+      page.appendChild(grid); pages.appendChild(page);
+    }
+  }
+  function openPrint() {
+    if ('speechSynthesis' in window) speechSynthesis.cancel();
+    show('print');
+    $('printCount').textContent = '正在排版…';
+    const run = () => { if ($('print').classList.contains('active')) renderPrint(); };
+    if (document.fonts && document.fonts.status !== 'loaded') document.fonts.ready.then(run);
+    else setTimeout(run, 30);
+  }
+  $('openPrint').addEventListener('click', openPrint);
+  $('printBack').addEventListener('click', () => { $('printPages').innerHTML = ''; show('settings'); });
+  $('lettersAll').addEventListener('click', () => { LETTERS.forEach(L => { printOn[L] = true; }); renderPrint(); });
+  $('lettersNone').addEventListener('click', () => { LETTERS.forEach(L => { printOn[L] = false; }); renderPrint(); });
+  $('incLetter').addEventListener('change', renderPrint);
+  $('incWord').addEventListener('change', renderPrint);
+  $('doPrint').addEventListener('click', () => { if (printItems().length) window.print(); });
+  window.addEventListener('beforeprint', () => { if ('speechSynthesis' in window) speechSynthesis.cancel(); });
+
   // ---------- prevent zoom / long-press menus (toddler mode) ----------
   ['gesturestart', 'gesturechange', 'gestureend'].forEach(ev => document.addEventListener(ev, e => e.preventDefault()));
   document.addEventListener('dblclick', e => e.preventDefault(), { passive: false });
   document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
-  document.addEventListener('contextmenu', e => { if (!$('settings').classList.contains('active')) e.preventDefault(); });
+  document.addEventListener('contextmenu', e => { if (!$('settings').classList.contains('active') && !$('print').classList.contains('active')) e.preventDefault(); });
 
   // ---------- init ----------
   renderHome();
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if ($('cards').classList.contains('active')) drawCard(); });
   // debug/test hook
-  window.ABC = { openLetter, openSettings, go, getWords: () => words };
+  window.ABC = { openLetter, openSettings, openPrint, go, getWords: () => words };
 })();
