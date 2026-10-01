@@ -73,7 +73,7 @@
   }
   function drawCard(dir) {
     const c = $('card'), item = deck[idx];
-    if (item.type === 'letter') CardGen.renderLetterCard(c, item.L, usable(item.L)[0]);
+    if (item.type === 'letter') CardGen.renderLetterCard(c, item.L);
     else CardGen.renderWordCard(c, item.w);
     const dots = $('dots'); dots.innerHTML = deck.map((_, i) => `<i class="${i === idx ? 'on' : ''}"></i>`).join('');
     $('prevBtn').disabled = curLetter === 'A' && idx === 0;
@@ -82,7 +82,7 @@
   }
   function speakCurrent() {
     const item = deck[idx];
-    if (item.type === 'letter') { const f = usable(item.L)[0]; speak(f ? [item.L, `${item.L} is for ${f.en}`] : [item.L]); }
+    if (item.type === 'letter') speak([CardGen.letterSay(item.L)]);
     else speak([item.w.en]);
   }
   function bounce() { const c = $('card'); c.classList.remove('bounce', 'slide-l', 'slide-r'); void c.offsetWidth; c.classList.add('bounce'); speakCurrent(); }
@@ -140,7 +140,7 @@
   function renderEditor() {
     const L = setLetter;
     $('setLetterTitle').textContent = `${L}${L.toLowerCase()}  ·  ${words[L].length} 个单词`;
-    CardGen.renderLetterCard($('letterPreview'), L, usable(L)[0]);
+    CardGen.renderLetterCard($('letterPreview'), L);
     const list = $('wordList'); list.innerHTML = '';
     words[L].forEach((w, i) => {
       const row = document.createElement('div'); row.className = 'word-row';
@@ -157,7 +157,7 @@
         </div>`;
       const thumb = row.querySelector('canvas'), en = row.querySelector('.en-in'), zh = row.querySelector('.zh-in'), em = row.querySelector('.emoji-in');
       en.value = w.en; zh.value = w.zh; em.value = w.emoji || '';
-      const redraw = () => { CardGen.renderWordCard(thumb, w); CardGen.renderLetterCard($('letterPreview'), L, usable(L)[0]); };
+      const redraw = () => { CardGen.renderWordCard(thumb, w); CardGen.renderLetterCard($('letterPreview'), L); };
       redraw();
       const onInput = () => { w.en = en.value; w.zh = zh.value; w.emoji = em.value; save(); redraw(); };
       [en, zh, em].forEach(inp => inp.addEventListener('input', onInput));
@@ -174,7 +174,7 @@
     const ins = document.querySelectorAll('#wordList .en-in'); const last = ins[ins.length - 1]; if (last) last.focus();
   });
   $('dlLetter').addEventListener('click', () => {
-    const c = document.createElement('canvas'); CardGen.renderLetterCard(c, setLetter, usable(setLetter)[0]); CardGen.downloadCanvas(c, `${setLetter}-letter.png`);
+    const c = document.createElement('canvas'); CardGen.renderLetterCard(c, setLetter); CardGen.downloadCanvas(c, `${setLetter}-letter.png`);
   });
   $('setBack').addEventListener('click', () => { renderHome(); show('home'); });
   $('exportBtn').addEventListener('click', () => {
@@ -213,7 +213,7 @@
   }
   function paintPrintCard(item) {
     const canvas = document.createElement('canvas');
-    if (item.type === 'letter') CardGen.renderLetterCard(canvas, item.L, usable(item.L)[0]);
+    if (item.type === 'letter') CardGen.renderLetterCard(canvas, item.L);
     else CardGen.renderWordCard(canvas, item.w);
     const img = document.createElement('img');
     img.alt = item.type === 'letter' ? `${item.L} letter` : `${item.w.en} ${item.w.zh || ''}`.trim();
