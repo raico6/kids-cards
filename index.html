@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#FFF4D6">
+<title>宝宝英语字母卡 ABC Cards</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔤</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- HOME: 26 letter tiles -->
+  <main id="home" class="screen active">
+    <header class="home-header">
+      <h1>ABC 宝宝字母卡</h1>
+      <p class="hint">点字母，看卡片 👆🔊</p>
+    </header>
+    <div id="tiles" class="tiles"></div>
+    <button id="parentBtn" class="parent-btn" aria-label="家长设置（长按）">⚙︎<span>家长</span></button>
+    <div id="toast" class="toast"></div>
+  </main>
+
+  <!-- CARD VIEW -->
+  <section id="cards" class="screen">
+    <div class="topbar">
+      <button id="homeBtn" class="round-btn" aria-label="回首页">🏠</button>
+      <div id="dots" class="dots"></div>
+    </div>
+    <div id="stage" class="stage">
+      <canvas id="card" class="card" width="800" height="1000" aria-label="点一下听发音"></canvas>
+    </div>
+    <p class="hint small-hint">点卡片听发音 · 左右滑动</p>
+    <div class="navbar">
+      <button id="prevBtn" class="arrow-btn" aria-label="上一张">◀</button>
+      <button id="speakBtn" class="arrow-btn speak" aria-label="再听一遍">🔊</button>
+      <button id="nextBtn" class="arrow-btn" aria-label="下一张">▶</button>
+    </div>
+  </section>
+
+  <!-- PARENT SETTINGS -->
+  <section id="settings" class="screen settings">
+    <div class="set-top">
+      <button id="setBack" class="pill">← 返回</button>
+      <h2>家长设置 · 编辑单词</h2>
+    </div>
+    <p class="set-hint">选择字母，修改英文单词和中文意思。图标可留空（自动匹配 emoji，或自动生成图案）。修改会自动保存在本机浏览器。</p>
+    <div id="letterPicker" class="letter-picker"></div>
+    <div class="set-letter-head">
+      <canvas id="letterPreview" class="thumb" width="800" height="1000"></canvas>
+      <div>
+        <div id="setLetterTitle" class="set-letter-title"></div>
+        <button id="dlLetter" class="pill small">⬇ 下载字母卡 PNG</button>
+      </div>
+    </div>
+    <div id="wordList" class="word-list"></div>
+    <button id="addWord" class="pill add">＋ 添加单词</button>
+    <div class="set-actions">
+      <button id="exportBtn" class="pill">导出 JSON</button>
+      <label class="pill">导入 JSON<input id="importFile" type="file" accept="application/json,.json" hidden></label>
+      <button id="resetLetter" class="pill warn">恢复本字母默认</button>
+      <button id="resetAll" class="pill warn">全部恢复默认</button>
+    </div>
+    <p class="set-hint">提示：iPhone/iPad 请先关闭"静音模式"并调高音量才能听到发音。</p>
+  </section>
+
+  <script src="emoji-map.js"></script>
+  <script src="defaults.js"></script>
+  <script src="cardgen.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
