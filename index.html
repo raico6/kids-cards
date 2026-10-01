@@ -46,6 +46,28 @@
       <h2>家长设置 · 编辑单词</h2>
     </div>
     <p class="set-hint">选择字母，修改英文单词和中文意思。图标可留空（自动匹配 emoji，或自动生成图案）。修改会自动保存在本机浏览器。</p>
+    <div id="cloudSync" class="cloud-sync">
+      <h3>云同步</h3>
+      <p class="set-hint">登录后，改过的单词会同步到云端，换设备或清除浏览器也能找回。请用打开本页的同一个浏览器点开邮件里的链接。</p>
+      <form id="syncForm" class="sync-form">
+        <input id="syncEmail" type="email" placeholder="家长邮箱" autocomplete="email" inputmode="email" aria-label="家长邮箱" required>
+        <button id="syncSend" class="pill" type="submit">发送登录链接</button>
+      </form>
+      <div id="syncSession" hidden>
+        <p class="sync-line">已登录 <b id="syncWho"></b></p>
+        <p class="sync-line set-hint">上次同步：<span id="syncWhen">还没有</span></p>
+        <p class="sync-line">状态：<span id="syncStatus">—</span></p>
+        <button id="syncOut" class="pill" type="button">退出登录</button>
+      </div>
+      <div id="syncConflict" class="sync-conflict" hidden>
+        <p>本机和云端的单词不一样。要保留哪一份？</p>
+        <div class="sync-form">
+          <button id="syncUseCloud" class="pill" type="button">用云端</button>
+          <button id="syncUseLocal" class="pill" type="button">用本机</button>
+        </div>
+      </div>
+      <p id="syncNote" class="set-hint"></p>
+    </div>
     <div id="letterPicker" class="letter-picker"></div>
     <div class="set-letter-head">
       <canvas id="letterPreview" class="thumb" width="800" height="1000"></canvas>
@@ -89,6 +111,8 @@
     <div id="printPages" class="print-pages"></div>
   </section>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+  <script src="supabase-config.js"></script>
   <script src="emoji-map.js"></script>
   <script src="defaults.js"></script>
   <script src="cardgen.js"></script>

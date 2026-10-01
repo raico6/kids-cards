@@ -20,7 +20,11 @@
     return sanitize(clone(window.DEFAULT_WORDS));
   }
   let words = load();
-  function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(words)); } catch (e) { toast('保存失败（浏览器存储不可用）'); } }
+  function persistLocal() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(words)); }
+    catch (e) { toast('保存失败（浏览器存储不可用）'); }
+  }
+  function save() { persistLocal(); markDirty(); scheduleCloudSave(); }
   const usable = (L) => words[L].filter(w => w.en.trim());
 
   // ---------- speech ----------
@@ -276,9 +280,223 @@
   document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
   document.addEventListener('contextmenu', e => { if (!$('settings').classList.contains('active') && !$('print').classList.contains('active')) e.preventDefault(); });
 
+  // ---------- cloud sync (parent). localStorage stays the offline cache. ----------
+  const META_KEY = 'abcCards.sync.v1';
+  function readMeta() {
+    try {
+      const raw = localStorage.getItem(META_KEY);
+      if (raw) {
+        const m = JSON.parse(raw);
+        return { updatedAt: m.updatedAt || null, dirty: !!m.dirty, lastSyncedAt: m.lastSyncedAt || null };
+      }
+    } catch (e) { /* ignore */ }
+    return { updatedAt: null, dirty: !!localStorage.getItem(STORE_KEY), lastSyncedAt: null };
+  }
+  let meta = readMeta();
+  function writeMeta() { try { localStorage.setItem(META_KEY, JSON.stringify(meta)); } catch (e) { /* ignore */ } }
+  function markDirty() { meta.dirty = true; meta.updatedAt = new Date().toISOString(); writeMeta(); }
+  function sameWords(a, b) { return JSON.stringify(sanitize(a)) === JSON.stringify(sanitize(b)); }
+  function wordsFromPayload(data) {
+    if (!data || typeof data !== 'object') return sanitize(null);
+    const inner = data.words && typeof data.words === 'object' && !Array.isArray(data.words) ? data.words : data;
+    return sanitize(inner);
+  }
+  function timeOf(v) { const t = Date.parse(v || ''); return Number.isFinite(t) ? t : 0; }
+  function formatWhen(iso) {
+    if (!iso) return '还没有';
+    try { return new Date(iso).toLocaleString('zh-CN', { hour12: false }); } catch (e) { return '还没有'; }
+  }
+  function emailRedirectTo() {
+    try {
+      const u = new URL(location.href);
+      u.hash = '';
+      if (u.hostname === 'raico6.github.io') return 'https://raico6.github.io/kids-cards/';
+      return u.origin + u.pathname + u.search;
+    } catch (e) { return 'https://raico6.github.io/kids-cards/'; }
+  }
+
+  let cloud = null, session = null, conflict = null, cloudTimer = null, pushing = false, syncStatus = '—';
+  function setStatus(text) { syncStatus = text; const el = $('syncStatus'); if (el) el.textContent = text; const when = $('syncWhen'); if (when) when.textContent = formatWhen(meta.lastSyncedAt); }
+  function renderSync() {
+    const loggedIn = !!(session && session.user);
+    const form = $('syncForm'), box = $('syncSession'), fight = $('syncConflict');
+    if (form) form.hidden = loggedIn;
+    if (box) box.hidden = !loggedIn;
+    if (fight) fight.hidden = !conflict;
+    const who = $('syncWho'); if (who) who.textContent = loggedIn ? (session.user.email || '') : '';
+    setStatus(syncStatus);
+  }
+  function refreshViews() {
+    if ($('home').classList.contains('active')) renderHome();
+    if ($('settings').classList.contains('active')) { renderPicker(); renderEditor(); }
+    if ($('cards').classList.contains('active')) {
+      buildDeck(curLetter);
+      if (idx >= deck.length) idx = Math.max(0, deck.length - 1);
+      drawCard();
+    }
+    if ($('print').classList.contains('active')) renderPrint();
+  }
+  function applyRemote(row) {
+    words = wordsFromPayload(row.data);
+    persistLocal();
+    meta.dirty = false;
+    meta.updatedAt = row.updated_at || meta.updatedAt;
+    meta.lastSyncedAt = row.updated_at || new Date().toISOString();
+    writeMeta();
+    conflict = null;
+    refreshViews();
+    setStatus('已同步');
+    renderSync();
+  }
+  function scheduleCloudSave() {
+    if (!cloud || !session || conflict) return;
+    if (navigator.onLine === false) { setStatus('离线，稍后同步'); return; }
+    setStatus('同步中');
+    clearTimeout(cloudTimer);
+    cloudTimer = setTimeout(() => { cloudTimer = null; pushNow(); }, 1000);
+  }
+  async function pushNow() {
+    if (pushing || !cloud || !session || conflict) return;
+    if (navigator.onLine === false) { setStatus('离线，稍后同步'); return; }
+    const stamp = meta.updatedAt || new Date().toISOString();
+    if (!meta.updatedAt) { meta.updatedAt = stamp; writeMeta(); }
+    const payload = sanitize(words);
+    pushing = true;
+    setStatus('同步中');
+    try {
+      const { error } = await cloud.from('word_lists').upsert({
+        user_id: session.user.id, data: payload, updated_at: stamp
+      }, { onConflict: 'user_id' });
+      if (error) throw error;
+      if (meta.updatedAt === stamp && sameWords(words, payload)) {
+        meta.dirty = false; meta.lastSyncedAt = stamp; writeMeta(); setStatus('已同步');
+      } else scheduleCloudSave();
+    } catch (e) {
+      setStatus(navigator.onLine === false ? '离线，稍后同步' : '同步失败');
+    } finally { pushing = false; renderSync(); }
+  }
+  async function reconcile() {
+    if (!cloud || !session) return;
+    if (navigator.onLine === false) { setStatus('离线，稍后同步'); renderSync(); return; }
+    setStatus('同步中');
+    let row = null;
+    try {
+      const res = await cloud.from('word_lists').select('data, updated_at').eq('user_id', session.user.id).maybeSingle();
+      if (res.error) throw res.error;
+      row = res.data;
+    } catch (e) {
+      setStatus(navigator.onLine === false ? '离线，稍后同步' : '同步失败');
+      renderSync();
+      return;
+    }
+    if (!row) {
+      if (!meta.updatedAt) { meta.updatedAt = new Date().toISOString(); writeMeta(); }
+      meta.dirty = true; writeMeta();
+      await pushNow();
+      return;
+    }
+    const remote = wordsFromPayload(row.data);
+    if (sameWords(words, remote)) {
+      meta.dirty = false; meta.updatedAt = row.updated_at || meta.updatedAt; meta.lastSyncedAt = row.updated_at || meta.lastSyncedAt;
+      writeMeta(); conflict = null; setStatus('已同步'); renderSync(); return;
+    }
+    if (meta.dirty) {
+      conflict = { data: row.data, updated_at: row.updated_at };
+      setStatus('请选择保留哪一份'); renderSync(); return;
+    }
+    if (timeOf(row.updated_at) >= timeOf(meta.updatedAt)) applyRemote(row);
+    else { meta.dirty = true; writeMeta(); await pushNow(); }
+  }
+  function stripAuthParams() {
+    try {
+      const u = new URL(location.href);
+      let changed = false;
+      ['code', 'error', 'error_code', 'error_description'].forEach(k => { if (u.searchParams.has(k)) { u.searchParams.delete(k); changed = true; } });
+      if (u.hash && /access_token|error|refresh_token/.test(u.hash)) { u.hash = ''; changed = true; }
+      if (changed) history.replaceState(null, '', u.pathname + u.search + u.hash);
+    } catch (e) { /* ignore */ }
+  }
+  function noteAuthError() {
+    try {
+      const u = new URL(location.href);
+      if (u.searchParams.get('error') || (u.hash && u.hash.indexOf('error') >= 0)) {
+        const note = $('syncNote'); if (note) note.textContent = '登录链接无效或已过期，请重新发送。';
+      }
+    } catch (e) { /* ignore */ }
+  }
+  let reconcileGen = 0;
+  function queueReconcile() {
+    const gen = ++reconcileGen;
+    setTimeout(() => { if (gen === reconcileGen) reconcile().catch(() => setStatus('同步失败')); }, 0);
+  }
+  function handleAuth(event, next) {
+    session = next || null;
+    if (!session) { conflict = null; syncStatus = '—'; renderSync(); return; }
+    renderSync();
+    if (event === 'TOKEN_REFRESHED') return;
+    stripAuthParams();
+    if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') queueReconcile();
+  }
+  function initCloud() {
+    noteAuthError();
+    const cfg = window.SUPABASE_CONFIG;
+    if (!window.supabase || !window.supabase.createClient || !cfg || !cfg.url || !cfg.publishableKey) {
+      const note = $('syncNote'); if (note) note.textContent = '云同步暂时不可用';
+      const btn = $('syncSend'); if (btn) btn.disabled = true;
+      return;
+    }
+    try {
+      cloud = window.supabase.createClient(cfg.url, cfg.publishableKey, {
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce' }
+      });
+    } catch (e) {
+      const note = $('syncNote'); if (note) note.textContent = '云同步暂时不可用';
+      return;
+    }
+    try {
+      cloud.auth.onAuthStateChange((event, next) => { try { handleAuth(event, next); } catch (err) { setStatus('同步失败'); } });
+    } catch (e) {
+      const note = $('syncNote'); if (note) note.textContent = '云同步暂时不可用';
+    }
+  }
+  $('syncForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = ($('syncEmail').value || '').trim();
+    const note = $('syncNote');
+    if (!cloud) { if (note) note.textContent = '云同步暂时不可用'; return; }
+    if (!email || email.indexOf('@') < 0) { if (note) note.textContent = '请输入有效的邮箱'; return; }
+    $('syncSend').disabled = true;
+    if (note) note.textContent = '正在发送…';
+    cloud.auth.signInWithOtp({ email, options: { emailRedirectTo: emailRedirectTo() } }).then((res) => {
+      if (res && res.error) throw res.error;
+      if (note) note.textContent = '登录链接已发送，请用这个浏览器打开邮件里的链接。';
+    }).catch(() => { if (note) note.textContent = '发送失败，请稍后再试。'; })
+      .then(() => { $('syncSend').disabled = false; });
+  });
+  $('syncOut').addEventListener('click', () => {
+    const done = () => { session = null; conflict = null; syncStatus = '—'; const note = $('syncNote'); if (note) note.textContent = '已退出登录'; renderSync(); };
+    if (!cloud) { done(); return; }
+    cloud.auth.signOut().then(done, done);
+  });
+  $('syncUseCloud').addEventListener('click', () => { if (conflict) applyRemote(conflict); });
+  $('syncUseLocal').addEventListener('click', () => {
+    if (!conflict) return;
+    conflict = null; meta.dirty = true; if (!meta.updatedAt) meta.updatedAt = new Date().toISOString(); writeMeta();
+    renderSync(); pushNow();
+  });
+  window.addEventListener('online', () => { if (session && meta.dirty && !conflict) scheduleCloudSave(); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && session && meta.dirty && !conflict && navigator.onLine !== false) scheduleCloudSave();
+  });
+
   // ---------- init ----------
   renderHome();
+  renderSync();
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if ($('cards').classList.contains('active')) drawCard(); });
+  try { initCloud(); } catch (e) { /* toddler screens keep working from localStorage */ }
   // debug/test hook
-  window.ABC = { openLetter, openSettings, openPrint, go, getWords: () => words };
+  window.ABC = {
+    openLetter, openSettings, openPrint, go, getWords: () => words,
+    sync: () => ({ status: syncStatus, dirty: meta.dirty, conflict: !!conflict, lastSyncedAt: meta.lastSyncedAt, email: session && session.user && session.user.email })
+  };
 })();
