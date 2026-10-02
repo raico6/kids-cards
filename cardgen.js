@@ -138,12 +138,6 @@
     Q: '/kjuː/', R: '/ɑːr/', S: '/ɛs/', T: '/tiː/', U: '/juː/', V: '/viː/', W: '/ˈdʌbəljuː/', X: '/ɛks/',
     Y: '/waɪ/', Z: '/ziː/'
   };
-  const LETTER_SAY = {
-    A: 'ay', B: 'bee', C: 'see', D: 'dee', E: 'ee', F: 'eff', G: 'gee', H: 'aitch',
-    I: 'eye', J: 'jay', K: 'kay', L: 'ell', M: 'em', N: 'en', O: 'oh', P: 'pee',
-    Q: 'cue', R: 'are', S: 'ess', T: 'tee', U: 'you', V: 'vee', W: 'double you', X: 'ex',
-    Y: 'why', Z: 'zee'
-  };
   const IPA_FONT = '"Noto Sans","Segoe UI","Arial","PingFang SC","Noto Sans CJK SC",sans-serif';
 
   function renderLetterCard(canvas, letter) {
@@ -185,7 +179,6 @@
   }
 
   function letterIpa(letter) { return LETTER_IPA[String(letter || '').toUpperCase()] || ''; }
-  function letterSay(letter) { return LETTER_SAY[String(letter || '').toUpperCase()] || String(letter || ''); }
 
-  window.CardGen = { W, H, renderWordCard, renderLetterCard, lookupEmoji, downloadCanvas, letterPalette, paletteFor, letterIpa, letterSay };
+  window.CardGen = { W, H, renderWordCard, renderLetterCard, lookupEmoji, downloadCanvas, letterPalette, paletteFor, letterIpa };
 })();

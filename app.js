@@ -28,6 +28,42 @@
   const usable = (L) => words[L].filter(w => w.en.trim());
 
   // ---------- speech ----------
+  // Letters and the built-in word list play recorded mp3s. Words a parent adds
+  // that have no recording still use the Web Speech API.
+  const player = new Audio();
+  player.preload = 'auto';
+  player.setAttribute('playsinline', '');
+  function wordSlug(en) {
+    return String(en || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  }
+  const recordedWords = new Set();
+  if (window.DEFAULT_WORDS) {
+    LETTERS.forEach(L => (window.DEFAULT_WORDS[L] || []).forEach(w => {
+      if (w && w.en) recordedWords.add(wordSlug(w.en));
+    }));
+  }
+  function stopTalking() {
+    try { player.pause(); } catch (e) { /* ignore */ }
+    if ('speechSynthesis' in window) { try { speechSynthesis.cancel(); } catch (e) { /* ignore */ } }
+  }
+  function playUrl(url) {
+    if ('speechSynthesis' in window) { try { speechSynthesis.cancel(); } catch (e) { /* ignore */ } }
+    let abs = url;
+    try { abs = new URL(url, document.baseURI).href; } catch (e) { /* keep url */ }
+    try {
+      if (player.src !== abs) player.src = abs;
+      else player.currentTime = 0;
+    } catch (e) { player.src = abs; }
+    const pending = player.play();
+    if (pending && typeof pending.catch === 'function') pending.catch(() => {});
+  }
+  function clipFor(item) {
+    if (!item) return null;
+    if (item.type === 'letter') return 'audio/letters/' + String(item.L || '').toLowerCase() + '.mp3';
+    const slug = wordSlug(item.w && item.w.en);
+    if (slug && recordedWords.has(slug)) return 'audio/words/' + slug + '.mp3';
+    return null;
+  }
   let voice = null;
   function pickVoice() {
     if (!('speechSynthesis' in window)) return;
@@ -38,6 +74,7 @@
   if ('speechSynthesis' in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
   function speak(parts) {
     if (!('speechSynthesis' in window)) return;
+    try { player.pause(); } catch (e) { /* ignore */ }
     try {
       speechSynthesis.cancel();
       (Array.isArray(parts) ? parts : [parts]).forEach(t => {
@@ -46,6 +83,15 @@
         speechSynthesis.speak(u);
       });
     } catch (e) { /* ignore */ }
+  }
+  function preloadAudio() {
+    const urls = LETTERS.map(L => 'audio/letters/' + L.toLowerCase() + '.mp3');
+    const run = () => { urls.forEach(u => { fetch(u).catch(() => {}); }); };
+    if ('requestIdleCallback' in window) requestIdleCallback(run, { timeout: 2500 });
+    else setTimeout(run, 500);
+  }
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
   }
 
   // ---------- screens ----------
@@ -74,6 +120,10 @@
   function openLetter(L, startAtEnd) {
     curLetter = L; buildDeck(L); idx = startAtEnd ? deck.length - 1 : 0;
     show('cards'); drawCard(); speakCurrent();
+    usable(L).forEach(w => {
+      const slug = wordSlug(w.en);
+      if (recordedWords.has(slug)) fetch('audio/words/' + slug + '.mp3').catch(() => {});
+    });
   }
   function drawCard(dir) {
     const c = $('card'), item = deck[idx];
@@ -86,8 +136,9 @@
   }
   function speakCurrent() {
     const item = deck[idx];
-    if (item.type === 'letter') speak([CardGen.letterSay(item.L)]);
-    else speak([item.w.en]);
+    const url = clipFor(item);
+    if (url) { playUrl(url); return; }
+    if (item && item.type === 'word' && item.w) speak([item.w.en]);
   }
   function bounce() { const c = $('card'); c.classList.remove('bounce', 'slide-l', 'slide-r'); void c.offsetWidth; c.classList.add('bounce'); speakCurrent(); }
   function go(d) {
@@ -100,7 +151,7 @@
   $('prevBtn').addEventListener('click', () => go(-1));
   $('nextBtn').addEventListener('click', () => go(1));
   $('speakBtn').addEventListener('click', bounce);
-  $('homeBtn').addEventListener('click', () => { if ('speechSynthesis' in window) speechSynthesis.cancel(); renderHome(); show('home'); });
+  $('homeBtn').addEventListener('click', () => { stopTalking(); renderHome(); show('home'); });
 
   // tap vs swipe on the card
   (function () {
@@ -131,7 +182,7 @@
 
   // ---------- settings ----------
   let setLetter = 'A';
-  function openSettings() { if ('speechSynthesis' in window) speechSynthesis.cancel(); show('settings'); renderPicker(); renderEditor(); }
+  function openSettings() { stopTalking(); show('settings'); renderPicker(); renderEditor(); }
   function renderPicker() {
     const p = $('letterPicker'); p.innerHTML = '';
     LETTERS.forEach(L => {
@@ -258,7 +309,7 @@
     }
   }
   function openPrint() {
-    if ('speechSynthesis' in window) speechSynthesis.cancel();
+    stopTalking();
     show('print');
     $('printCount').textContent = '正在排版…';
     const run = () => { if ($('print').classList.contains('active')) renderPrint(); };
@@ -272,7 +323,7 @@
   $('incLetter').addEventListener('change', renderPrint);
   $('incWord').addEventListener('change', renderPrint);
   $('doPrint').addEventListener('click', () => { if (printItems().length) window.print(); });
-  window.addEventListener('beforeprint', () => { if ('speechSynthesis' in window) speechSynthesis.cancel(); });
+  window.addEventListener('beforeprint', () => { stopTalking(); });
 
   // ---------- prevent zoom / long-press menus (toddler mode) ----------
   ['gesturestart', 'gesturechange', 'gestureend'].forEach(ev => document.addEventListener(ev, e => e.preventDefault()));
@@ -492,6 +543,7 @@
   // ---------- init ----------
   renderHome();
   renderSync();
+  preloadAudio();
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if ($('cards').classList.contains('active')) drawCard(); });
   try { initCloud(); } catch (e) { /* toddler screens keep working from localStorage */ }
   // debug/test hook
