@@ -1,0 +1,6 @@
+project_id = "lzsdmntehhzjvacxkpza"
+
+# Keep this on. The gateway rejects a missing or invalid user JWT before the
+# function runs. The function also checks the JWT itself.
+[functions.tts]
+verify_jwt = true
