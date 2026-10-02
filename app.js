@@ -4,25 +4,8 @@
   const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
   const $ = (id) => document.getElementById(id);
   const clone = (o) => JSON.parse(JSON.stringify(o));
-  const TTS_AUDIO_HOST = 'lzsdmntehhzjvacxkpza.supabase.co';
   function wordSlug(en) {
     return String(en || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-  }
-  function validWordText(text) {
-    const t = String(text || '').trim();
-    if (!t || t.length > 40) return false;
-    return /^[A-Za-z]+(?:['-][A-Za-z]+)*(?: +[A-Za-z]+(?:['-][A-Za-z]+)*)*$/.test(t);
-  }
-  function safeAudioUrl(v, slug) {
-    const s = String(v || '').trim();
-    if (!s || !slug) return '';
-    try {
-      const u = new URL(s);
-      if (u.protocol !== 'https:' || u.hostname !== TTS_AUDIO_HOST) return '';
-      if (u.pathname !== '/storage/v1/object/public/tts/audio/tts/' + slug + '.mp3') return '';
-      if (u.search && !/^\?v=\d{1,16}$/.test(u.search)) return u.origin + u.pathname;
-      return u.origin + u.pathname + (u.search || '');
-    } catch (e) { return ''; }
   }
 
   // ---------- data ----------
@@ -30,13 +13,9 @@
     const out = {};
     for (const L of LETTERS) {
       const arr = Array.isArray(data && data[L]) ? data[L] : [];
-      out[L] = arr.filter(w => w && typeof w.en === 'string').map(w => {
-        const en = String(w.en).slice(0, 40);
-        const item = { en, zh: String(w.zh || '').slice(0, 40), emoji: String(w.emoji || '').slice(0, 16) };
-        const audio = safeAudioUrl(w.audio, wordSlug(en));
-        if (audio) item.audio = audio;
-        return item;
-      });
+      out[L] = arr.filter(w => w && typeof w.en === 'string').map(w => ({
+        en: String(w.en).slice(0, 40), zh: String(w.zh || '').slice(0, 40), emoji: String(w.emoji || '').slice(0, 16)
+      }));
     }
     return out;
   }
@@ -53,7 +32,7 @@
   const usable = (L) => words[L].filter(w => w.en.trim());
 
   // ---------- speech ----------
-  // Playback: built-in mp3, then a cloud recording stored on the word, then Web Speech.
+  // Playback: built-in mp3 for letters and default words, otherwise Web Speech.
   const player = new Audio();
   player.preload = 'auto';
   player.setAttribute('playsinline', '');
@@ -67,41 +46,22 @@
     try { player.pause(); } catch (e) { /* ignore */ }
     if ('speechSynthesis' in window) { try { speechSynthesis.cancel(); } catch (e) { /* ignore */ } }
   }
-  let playToken = 0;
-  function playUrl(url, onFail) {
-    const token = ++playToken;
+  function playUrl(url) {
     if ('speechSynthesis' in window) { try { speechSynthesis.cancel(); } catch (e) { /* ignore */ } }
     let abs = url;
     try { abs = new URL(url, document.baseURI).href; } catch (e) { /* keep url */ }
-    const fail = () => {
-      if (token !== playToken) return;
-      playToken++;
-      if (onFail) onFail();
-    };
-    player.onerror = () => {
-      const code = player.error && player.error.code;
-      if (code === 1) return;
-      fail();
-    };
     try {
       if (player.src !== abs) player.src = abs;
       else player.currentTime = 0;
     } catch (e) { player.src = abs; }
     const pending = player.play();
-    if (pending && typeof pending.catch === 'function') {
-      pending.catch((err) => {
-        if (err && (err.name === 'AbortError' || err.name === 'NotAllowedError')) return;
-        fail();
-      });
-    }
+    if (pending && typeof pending.catch === 'function') pending.catch(() => {});
   }
   function clipFor(item) {
     if (!item) return null;
     if (item.type === 'letter') return 'audio/letters/' + String(item.L || '').toLowerCase() + '.mp3';
     const slug = wordSlug(item.w && item.w.en);
     if (slug && recordedWords.has(slug)) return 'audio/words/' + slug + '.mp3';
-    const audio = item.w && safeAudioUrl(item.w.audio, slug);
-    if (audio) return audio;
     return null;
   }
   let voice = null;
@@ -163,10 +123,6 @@
     usable(L).forEach(w => {
       const slug = wordSlug(w.en);
       if (recordedWords.has(slug)) fetch('audio/words/' + slug + '.mp3').catch(() => {});
-      else {
-        const audio = safeAudioUrl(w.audio, slug);
-        if (audio) fetch(audio).catch(() => {});
-      }
     });
   }
   function drawCard(dir) {
@@ -181,13 +137,7 @@
   function speakCurrent() {
     const item = deck[idx];
     const url = clipFor(item);
-    if (url) {
-      playUrl(url, () => {
-        if (deck[idx] !== item) return;
-        if (item && item.type === 'word' && item.w) speak([item.w.en]);
-      });
-      return;
-    }
+    if (url) { playUrl(url); return; }
     if (item && item.type === 'word' && item.w) speak([item.w.en]);
   }
   function bounce() { const c = $('card'); c.classList.remove('bounce', 'slide-l', 'slide-r'); void c.offsetWidth; c.classList.add('bounce'); speakCurrent(); }
@@ -232,7 +182,7 @@
 
   // ---------- settings ----------
   let setLetter = 'A';
-  function openSettings() { stopTalking(); show('settings'); renderPicker(); renderEditor(); try { backfillTts(); } catch (e) { /* recording is optional */ } }
+  function openSettings() { stopTalking(); show('settings'); renderPicker(); renderEditor(); }
   function renderPicker() {
     const p = $('letterPicker'); p.innerHTML = '';
     LETTERS.forEach(L => {
@@ -259,32 +209,18 @@
             <button class="pill small dl">⬇ PNG</button>
             <button class="pill small warn del">删除</button>
           </div>
-          <div class="audio-line"><span class="audio-status"></span><button type="button" class="pill small regen">重新生成</button></div>
         </div>`;
       const thumb = row.querySelector('canvas'), en = row.querySelector('.en-in'), zh = row.querySelector('.zh-in'), em = row.querySelector('.emoji-in');
       en.value = w.en; zh.value = w.zh; em.value = w.emoji || '';
       const redraw = () => { CardGen.renderWordCard(thumb, w); CardGen.renderLetterCard($('letterPreview'), L); };
       redraw();
-      const onInput = () => {
-        const prev = wordSlug(w.en);
-        w.en = en.value; w.zh = zh.value; w.emoji = em.value;
-        if (wordSlug(w.en) !== prev && w.audio) delete w.audio;
-        if (wordSlug(w.en) !== prev) scheduleTts(w, false);
-        save(); redraw(); updateAudioRow(row, w);
-      };
+      const onInput = () => { w.en = en.value; w.zh = zh.value; w.emoji = em.value; save(); redraw(); };
       [en, zh, em].forEach(inp => inp.addEventListener('input', onInput));
       row.querySelector('.del').addEventListener('click', () => { if (confirm(`删除 "${w.en || '(空)'}"？`)) { words[L].splice(i, 1); save(); renderEditor(); } });
       row.querySelector('.up').addEventListener('click', () => { if (i > 0) { [words[L][i - 1], words[L][i]] = [words[L][i], words[L][i - 1]]; save(); renderEditor(); } });
       row.querySelector('.dl').addEventListener('click', () => {
         const c = document.createElement('canvas'); CardGen.renderWordCard(c, w); CardGen.downloadCanvas(c, `${L}-${fileSafe(w.en)}.png`);
       });
-      row.querySelector('.regen').addEventListener('click', () => {
-        if (w.audio) delete w.audio;
-        ttsUnavailable = false;
-        scheduleTts(w, true, 0);
-        updateAudioRow(row, w);
-      });
-      updateAudioRow(row, w);
       list.appendChild(row);
     });
   }
@@ -431,83 +367,6 @@
   }
 
   let cloud = null, session = null, conflict = null, cloudTimer = null, pushing = false, syncStatus = '—';
-  const ttsState = new Map();
-  const ttsTimers = new Map();
-  let ttsUnavailable = false;
-  function updateAudioRow(row, w) {
-    if (!row || !w) return;
-    const slug = wordSlug(w.en);
-    row.dataset.slug = slug;
-    const status = row.querySelector('.audio-status');
-    const regen = row.querySelector('.regen');
-    const builtin = !!(slug && recordedWords.has(slug));
-    const cloudAudio = safeAudioUrl(w.audio, slug);
-    const pending = !!(slug && ttsState.get(slug) === 'pending');
-    let label = '';
-    if (String(w.en || '').trim()) {
-      if (builtin || cloudAudio) label = '已有录音';
-      else if (pending) label = '录音生成中';
-      else label = '用手机语音';
-    }
-    if (status) status.textContent = label;
-    if (regen) {
-      regen.hidden = !(session && validWordText(w.en) && !builtin);
-      regen.disabled = pending;
-    }
-  }
-  function refreshAudioRows() {
-    if (!$('settings').classList.contains('active')) return;
-    document.querySelectorAll('#wordList .word-row').forEach((row, i) => {
-      const w = words[setLetter] && words[setLetter][i];
-      if (w) updateAudioRow(row, w);
-    });
-  }
-  function ttsFailedHard(error) {
-    const response = error && error.context;
-    const status = response && response.status;
-    if (status === 400 || status === 401 || status === 429) return false;
-    return true;
-  }
-  function scheduleTts(word, force, delay) {
-    if (!word) return;
-    const slug = wordSlug(word.en);
-    if (!slug || !validWordText(word.en)) return;
-    if (!force && recordedWords.has(slug)) return;
-    if (!force && safeAudioUrl(word.audio, slug)) return;
-    if (!session || !cloud) return;
-    if (ttsUnavailable && !force) return;
-    const wait = typeof delay === 'number' ? delay : 800;
-    const prevTimer = ttsTimers.get(slug);
-    if (prevTimer) clearTimeout(prevTimer);
-    ttsState.set(slug, 'pending');
-    refreshAudioRows();
-    const timer = setTimeout(() => { ttsTimers.delete(slug); runTts(word, slug, !!force); }, wait);
-    ttsTimers.set(slug, timer);
-  }
-  async function runTts(word, slug, force) {
-    if (!cloud || !session || wordSlug(word.en) !== slug) { ttsState.delete(slug); refreshAudioRows(); return; }
-    ttsState.set(slug, 'pending');
-    try {
-      const res = await cloud.functions.invoke('tts', { body: { text: String(word.en).trim(), force: !!force } });
-      if (!res || res.error || !res.data || !res.data.url) throw (res && res.error) || new Error('tts');
-      if (wordSlug(word.en) !== slug) return;
-      const url = safeAudioUrl(res.data.url, slug);
-      if (!url) throw new Error('url');
-      word.audio = url;
-      ttsState.delete(slug);
-      ttsUnavailable = false;
-      save();
-      fetch(url).catch(() => {});
-    } catch (err) {
-      if (wordSlug(word.en) === slug) ttsState.delete(slug);
-      if (!force && ttsFailedHard(err)) ttsUnavailable = true;
-    }
-    refreshAudioRows();
-  }
-  function backfillTts() {
-    if (!session || !cloud || conflict || ttsUnavailable) return;
-    LETTERS.forEach(L => words[L].forEach(w => scheduleTts(w, false, 1000)));
-  }
   function setStatus(text) { syncStatus = text; const el = $('syncStatus'); if (el) el.textContent = text; const when = $('syncWhen'); if (when) when.textContent = formatWhen(meta.lastSyncedAt); }
   function renderSync() {
     const loggedIn = !!(session && session.user);
@@ -539,7 +398,6 @@
     refreshViews();
     setStatus('已同步');
     renderSync();
-    try { backfillTts(); } catch (e) { /* recording is optional */ }
   }
   function scheduleCloudSave() {
     if (!cloud || !session || conflict) return;
@@ -592,7 +450,6 @@
     if (sameWords(words, remote)) {
       meta.dirty = false; meta.updatedAt = row.updated_at || meta.updatedAt; meta.lastSyncedAt = row.updated_at || meta.lastSyncedAt;
       writeMeta(); conflict = null; setStatus('已同步'); renderSync();
-      try { backfillTts(); } catch (e) { /* recording is optional */ }
       return;
     }
     if (meta.dirty) {
