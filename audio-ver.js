@@ -4,7 +4,7 @@ self.AUDIO_VER = {
   'audio/letters/c.mp3': '5229f4a9',
   'audio/letters/d.mp3': '5a8ab919',
   'audio/letters/e.mp3': 'a34edfdf',
-  'audio/letters/f.mp3': 'e55a25dc',
+  'audio/letters/f.mp3': 'b9bdbb9a',
   'audio/letters/g.mp3': 'bf88b91e',
   'audio/letters/h.mp3': '9cc7064b',
   'audio/letters/i.mp3': '8a8be706',
