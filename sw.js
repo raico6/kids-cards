@@ -1,5 +1,5 @@
 /* Cache recorded card audio so letter and word cards still speak offline. */
-const CACHE = 'abc-audio-v3';
+const CACHE = 'abc-audio-v4';
 function isCachedAudio(url) {
   return url.origin === self.location.origin && url.pathname.endsWith('.mp3');
 }
