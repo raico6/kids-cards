@@ -57,11 +57,16 @@
     const pending = player.play();
     if (pending && typeof pending.catch === 'function') pending.catch(() => {});
   }
+  function audioUrl(path) {
+    const table = self.AUDIO_VER || {};
+    const v = table[path];
+    return v ? path + '?v=' + v : path;
+  }
   function clipFor(item) {
     if (!item) return null;
-    if (item.type === 'letter') return 'audio/letters/' + String(item.L || '').toLowerCase() + '.mp3';
+    if (item.type === 'letter') return audioUrl('audio/letters/' + String(item.L || '').toLowerCase() + '.mp3');
     const slug = wordSlug(item.w && item.w.en);
-    if (slug && recordedWords.has(slug)) return 'audio/words/' + slug + '.mp3';
+    if (slug && recordedWords.has(slug)) return audioUrl('audio/words/' + slug + '.mp3');
     return null;
   }
   let voice = null;
@@ -85,7 +90,7 @@
     } catch (e) { /* ignore */ }
   }
   function preloadAudio() {
-    const urls = LETTERS.map(L => 'audio/letters/' + L.toLowerCase() + '.mp3');
+    const urls = LETTERS.map(L => audioUrl('audio/letters/' + L.toLowerCase() + '.mp3'));
     const run = () => { urls.forEach(u => { fetch(u).catch(() => {}); }); };
     if ('requestIdleCallback' in window) requestIdleCallback(run, { timeout: 2500 });
     else setTimeout(run, 500);
@@ -122,7 +127,7 @@
     show('cards'); drawCard(); speakCurrent();
     usable(L).forEach(w => {
       const slug = wordSlug(w.en);
-      if (recordedWords.has(slug)) fetch('audio/words/' + slug + '.mp3').catch(() => {});
+      if (recordedWords.has(slug)) fetch(audioUrl('audio/words/' + slug + '.mp3')).catch(() => {});
     });
   }
   function drawCard(dir) {
@@ -137,6 +142,8 @@
   function speakCurrent() {
     const item = deck[idx];
     const url = clipFor(item);
+    // Letter cards only play the recorded name. They never fall through to Web Speech.
+    if (item && item.type === 'letter') { if (url) playUrl(url); return; }
     if (url) { playUrl(url); return; }
     if (item && item.type === 'word' && item.w) speak([item.w.en]);
   }
