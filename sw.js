@@ -1,7 +1,7 @@
 /* Cache recorded card audio so letter and word cards still speak offline.
    URLs include ?v=<file hash>. Matching keeps that query, so a new hash is a cache miss. */
 importScripts('audio-ver.js');
-const CACHE = 'abc-audio-v12';
+const CACHE = 'abc-audio-v13';
 function isCachedAudio(url) {
   return url.origin === self.location.origin && url.pathname.endsWith('.mp3');
 }
