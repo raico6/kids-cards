@@ -124,7 +124,7 @@
   function buildDeck(L) { deck = [{ type: 'letter', L }].concat(usable(L).map(w => ({ type: 'word', L, w }))); }
   function openLetter(L, startAtEnd) {
     curLetter = L; buildDeck(L); idx = startAtEnd ? deck.length - 1 : 0;
-    show('cards'); drawCard(); speakCurrent();
+    stopTalking(); show('cards'); drawCard();
     usable(L).forEach(w => {
       const slug = wordSlug(w.en);
       if (recordedWords.has(slug)) fetch(audioUrl('audio/words/' + slug + '.mp3')).catch(() => {});
@@ -147,17 +147,18 @@
     if (url) { playUrl(url); return; }
     if (item && item.type === 'word' && item.w) speak([item.w.en]);
   }
-  function bounce() { const c = $('card'); c.classList.remove('bounce', 'slide-l', 'slide-r'); void c.offsetWidth; c.classList.add('bounce'); speakCurrent(); }
+  function bounce() { const c = $('card'); c.classList.remove('bounce', 'slide-l', 'slide-r'); void c.offsetWidth; c.classList.add('bounce'); }
+  function sayCurrent() { bounce(); speakCurrent(); }
   function go(d) {
     const n = idx + d;
-    if (n >= 0 && n < deck.length) { idx = n; drawCard(d); speakCurrent(); return; }
+    if (n >= 0 && n < deck.length) { stopTalking(); idx = n; drawCard(d); return; }
     const li = LETTERS.indexOf(curLetter) + d;           // continue into next/previous letter
     if (li < 0 || li >= LETTERS.length) return;
-    curLetter = LETTERS[li]; buildDeck(curLetter); idx = d > 0 ? 0 : deck.length - 1; drawCard(d); speakCurrent();
+    stopTalking(); curLetter = LETTERS[li]; buildDeck(curLetter); idx = d > 0 ? 0 : deck.length - 1; drawCard(d);
   }
   $('prevBtn').addEventListener('click', () => go(-1));
   $('nextBtn').addEventListener('click', () => go(1));
-  $('speakBtn').addEventListener('click', bounce);
+  $('speakBtn').addEventListener('click', sayCurrent);
   $('homeBtn').addEventListener('click', () => { stopTalking(); renderHome(); show('home'); });
 
   // tap vs swipe on the card
@@ -174,7 +175,7 @@
   })();
   document.addEventListener('keydown', e => {
     if (!$('cards').classList.contains('active')) return;
-    if (e.key === 'ArrowRight') go(1); else if (e.key === 'ArrowLeft') go(-1); else if (e.key === ' ') { e.preventDefault(); bounce(); }
+    if (e.key === 'ArrowRight') go(1); else if (e.key === 'ArrowLeft') go(-1); else if (e.key === ' ') { e.preventDefault(); sayCurrent(); }
   });
 
   // ---------- parent gate: long-press 1.5s ----------
