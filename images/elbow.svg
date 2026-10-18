@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- bent arm: upper arm across, forearm up, elbow at the bottom-right bend -->
+  <path d="M52 250 C140 222 236 232 300 262 C306 222 310 188 314 156 L404 152 C410 212 416 262 418 314 C422 378 392 410 334 410 C248 410 148 398 52 386 Z"
+        fill="#FFD0A8" stroke="#D9946A" stroke-width="9" stroke-linejoin="round"/>
+  <path d="M300 262 q8 18 2 40" stroke="#D9946A" stroke-width="8" stroke-linecap="round" fill="none"/>
+  <!-- fist -->
+  <rect x="296" y="64" width="128" height="106" rx="44" fill="#FFD0A8" stroke="#D9946A" stroke-width="9"/>
+  <path d="M338 70 v34 M372 68 v36" stroke="#D9946A" stroke-width="7" stroke-linecap="round"/>
+  <rect x="292" y="112" width="96" height="44" rx="22" fill="#FFD0A8" stroke="#D9946A" stroke-width="8"/>
+  <!-- sleeve -->
+  <path d="M30 236 C80 214 130 212 172 220 L178 396 C126 400 76 398 30 392 Z" fill="#54A0FF"/>
+  <path d="M150 218 L172 220 L178 396 L154 398 Z" fill="#3D86E8"/>
+  <!-- elbow highlight -->
+  <circle cx="390" cy="378" r="66" fill="none" stroke="#FF6B6B" stroke-width="11" stroke-dasharray="24 16"/>
+  <circle cx="392" cy="380" r="28" fill="#FF6B6B" opacity="0.55"/>
+  <!-- sparkles -->
+  <g fill="#FFD93D" stroke="#F5B800" stroke-width="4" stroke-linejoin="round">
+    <path d="M466 300 l9 20 l20 9 l-20 9 l-9 20 l-9 -20 l-20 -9 l20 -9 z"/>
+    <path d="M300 452 l7 15 l15 7 l-15 7 l-7 15 l-7 -15 l-15 -7 l15 -7 z"/>
+    <path d="M470 446 l6 12 l12 6 l-12 6 l-6 12 l-6 -12 l-12 -6 l12 -6 z"/>
+  </g>
+</svg>

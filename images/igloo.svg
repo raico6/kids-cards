@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- snow ground -->
+  <ellipse cx="256" cy="404" rx="232" ry="40" fill="#FFFFFF" stroke="#BFE3F7" stroke-width="8"/>
+  <!-- dome -->
+  <path d="M56 396 A200 200 0 0 1 456 396 Z" fill="#EAF7FF" stroke="#8CCDF0" stroke-width="10" stroke-linejoin="round"/>
+  <!-- ice block rows -->
+  <g stroke="#A9DBF5" stroke-width="7" fill="none" stroke-linecap="round">
+    <path d="M70 336 H442"/>
+    <path d="M96 276 H416"/>
+    <path d="M144 222 H368"/>
+    <path d="M150 396 V336 M240 396 V336 M362 396 V336"/>
+    <path d="M190 336 V276 M300 336 V276 M400 336 V284"/>
+    <path d="M140 276 V230 M250 276 V222 M352 276 V226"/>
+    <path d="M196 222 V204 M310 222 V202"/>
+  </g>
+  <!-- entrance tunnel -->
+  <path d="M184 404 V332 A72 72 0 0 1 328 332 V404 Z" fill="#EAF7FF" stroke="#8CCDF0" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M214 404 V340 A42 42 0 0 1 298 340 V404 Z" fill="#3D6FB6"/>
+  <!-- snowflakes -->
+  <g stroke="#8CCDF0" stroke-width="6" stroke-linecap="round">
+    <path d="M70 120 v40 M50 140 h40 M56 126 l28 28 M84 126 l-28 28"/>
+    <path d="M440 96 v32 M424 112 h32 M429 101 l22 22 M451 101 l-22 22"/>
+    <path d="M470 220 v22 M459 231 h22"/>
+  </g>
+</svg>

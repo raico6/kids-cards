@@ -14,8 +14,9 @@
   function paletteFor(key) { return PALETTE[hash(String(key).toLowerCase()) % PALETTE.length]; }
   function letterPalette(L) { return PALETTE[(L.toUpperCase().charCodeAt(0) - 65 + 12) % PALETTE.length]; }
 
-  function lookupEmoji(word) {
-    const map = window.EMOJI_MAP || {};
+  function lookupEmoji(word) { return lookupIn(window.EMOJI_MAP || {}, word); }
+  function lookupPicture(word) { return lookupIn(window.PICTURE_MAP || {}, word); }
+  function lookupIn(map, word) {
     const w = String(word || '').trim().toLowerCase();
     if (!w) return null;
     if (map[w]) return map[w];
@@ -66,6 +67,26 @@
     roundRect(ctx, 40, 40, W - 80, H - 80, 60); ctx.fillStyle = '#FFFFFF'; ctx.fill(); ctx.restore();
     ctx.lineWidth = 14; ctx.strokeStyle = main; roundRect(ctx, 40, 40, W - 80, H - 80, 60); ctx.stroke();
   }
+  // Picture files load asynchronously. A card drawn before its picture arrives is redrawn on load.
+  const pictures = {};
+  const waiting = new Map();
+  function picture(src) {
+    if (pictures[src]) return pictures[src];
+    const img = new Image();
+    const entry = pictures[src] = { img, ready: null };
+    entry.ready = new Promise(resolve => {
+      img.onload = () => {
+        resolve();
+        waiting.forEach((item, canvas) => { if (lookupPicture(item.en) === src) renderWordCard(canvas, item); });
+      };
+      img.onerror = () => resolve();
+    });
+    img.src = src;
+    return entry;
+  }
+  function picturesReady() {
+    return Promise.all(Object.values(window.PICTURE_MAP || {}).map(src => picture(src).ready));
+  }
   function drawEmoji(ctx, emoji, cx, cy, size) {
     ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.font = `${size}px ${EMOJI_FONT}`; ctx.fillText(emoji, cx, cy + size * 0.05); ctx.restore();
@@ -115,9 +136,17 @@
     const word = String(item.en || '').trim() || '?';
     const [main, light] = paletteFor(word);
     background(ctx, main, light, hash(word));
-    const emoji = (item.emoji && item.emoji.trim()) || lookupEmoji(word);
+    const custom = item.emoji && item.emoji.trim();
+    const pic = custom ? null : lookupPicture(word);
+    const emoji = custom || lookupEmoji(word);
     const cx = W / 2, cy = 400;
-    if (emoji) {
+    waiting.delete(canvas);
+    if (pic) {
+      ctx.beginPath(); ctx.arc(cx, cy, 270, 0, Math.PI * 2); ctx.fillStyle = light; ctx.fill();
+      const { img } = picture(pic);
+      if (img.complete && img.naturalWidth) ctx.drawImage(img, cx - 220, cy - 220, 440, 440);
+      else waiting.set(canvas, item);
+    } else if (emoji) {
       ctx.beginPath(); ctx.arc(cx, cy, 270, 0, Math.PI * 2); ctx.fillStyle = light; ctx.fill();
       drawEmoji(ctx, emoji, cx, cy, 360);
     } else {
@@ -180,5 +209,7 @@
 
   function letterIpa(letter) { return LETTER_IPA[String(letter || '').toUpperCase()] || ''; }
 
-  window.CardGen = { W, H, renderWordCard, renderLetterCard, lookupEmoji, downloadCanvas, letterPalette, paletteFor, letterIpa };
+  picturesReady();
+
+  window.CardGen = { W, H, renderWordCard, renderLetterCard, lookupEmoji, lookupPicture, picturesReady, downloadCanvas, letterPalette, paletteFor, letterIpa };
 })();

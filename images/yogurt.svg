@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- yogurt cup with a strawberry label, peeled lid and a spoon -->
+  <path d="M120 196 L156 440 Q160 462 184 462 L328 462 Q352 462 356 440 L392 196 Z" fill="#FFFFFF" stroke="#E0B7C6" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M132 276 L380 276 L366 372 L146 372 Z" fill="#FF8FB1"/>
+  <!-- strawberry -->
+  <path d="M256 362 C224 346 212 318 222 302 C232 290 248 294 256 302 C264 294 280 290 290 302 C300 318 288 346 256 362 Z" fill="#FF4D6D"/>
+  <path d="M236 296 q20 -16 40 0 q-20 -4 -40 0 z" fill="#3BB273"/>
+  <path d="M256 296 v-14" stroke="#3BB273" stroke-width="6" stroke-linecap="round"/>
+  <g fill="#FFE08A"><circle cx="244" cy="318" r="3.5"/><circle cx="268" cy="316" r="3.5"/><circle cx="256" cy="334" r="3.5"/><circle cx="240" cy="338" r="3"/><circle cx="272" cy="338" r="3"/></g>
+  <!-- spoon handle; the bowl is hidden in the yogurt -->
+  <path d="M300 170 L410 44" stroke="#A9B0BD" stroke-width="26" stroke-linecap="round"/>
+  <path d="M300 170 L410 44" stroke="#E3E7EE" stroke-width="14" stroke-linecap="round"/>
+  <!-- rim -->
+  <rect x="104" y="180" width="304" height="34" rx="17" fill="#FFFFFF" stroke="#E0B7C6" stroke-width="10"/>
+  <!-- creamy top -->
+  <path d="M128 186 C150 150 196 166 214 144 C232 124 280 124 298 146 C316 166 362 150 384 186 Z" fill="#FFF7FB" stroke="#E0B7C6" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M180 166 q36 -22 72 0" stroke="#F2CADA" stroke-width="7" stroke-linecap="round" fill="none"/>
+</svg>

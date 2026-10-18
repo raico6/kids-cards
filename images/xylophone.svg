@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- frame rails -->
+  <path d="M60 196 L452 236" stroke="#B5764A" stroke-width="22" stroke-linecap="round"/>
+  <path d="M60 356 L452 316" stroke="#B5764A" stroke-width="22" stroke-linecap="round"/>
+  <!-- rainbow bars, longest on the left -->
+  <g stroke="rgba(0,0,0,0.12)" stroke-width="4">
+    <rect x="66"  y="150" width="44" height="252" rx="16" fill="#FF6B6B"/>
+    <rect x="122" y="162" width="44" height="228" rx="16" fill="#FF9F43"/>
+    <rect x="178" y="174" width="44" height="204" rx="16" fill="#FECA57"/>
+    <rect x="234" y="186" width="44" height="180" rx="16" fill="#6BCB77"/>
+    <rect x="290" y="198" width="44" height="156" rx="16" fill="#4D96FF"/>
+    <rect x="346" y="210" width="44" height="132" rx="16" fill="#7B61FF"/>
+    <rect x="402" y="222" width="44" height="108" rx="16" fill="#F368E0"/>
+  </g>
+  <!-- pegs -->
+  <g fill="#FFFFFF" opacity="0.85">
+    <circle cx="88" cy="174" r="7"/><circle cx="88" cy="378" r="7"/>
+    <circle cx="144" cy="186" r="7"/><circle cx="144" cy="366" r="7"/>
+    <circle cx="200" cy="198" r="7"/><circle cx="200" cy="354" r="7"/>
+    <circle cx="256" cy="210" r="7"/><circle cx="256" cy="342" r="7"/>
+    <circle cx="312" cy="222" r="7"/><circle cx="312" cy="330" r="7"/>
+    <circle cx="368" cy="234" r="7"/><circle cx="368" cy="318" r="7"/>
+    <circle cx="424" cy="246" r="7"/><circle cx="424" cy="306" r="7"/>
+  </g>
+  <!-- mallets -->
+  <path d="M170 470 L246 290" stroke="#B5764A" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="250" cy="280" r="26" fill="#FF6B6B" stroke="#C94A4A" stroke-width="6"/>
+  <path d="M380 474 L330 300" stroke="#B5764A" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="327" cy="290" r="26" fill="#4D96FF" stroke="#2F6FD1" stroke-width="6"/>
+  <!-- music notes -->
+  <g fill="#7B61FF">
+    <path d="M118 62 v54 a16 12 0 1 1 -8 -10 v-56 l44 -10 v52 a16 12 0 1 1 -8 -10 v-30 z"/>
+  </g>
+  <g fill="#FF6FB5">
+    <path d="M410 80 v46 a15 11 0 1 1 -8 -9 v-45 l8 0 q4 18 26 24 l-2 8 q-14 -4 -24 -12 z"/>
+  </g>
+</svg>
