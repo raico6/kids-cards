@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- zoo entrance gate with a sign; giraffe peeks over, elephant peeks round the left post -->
+  <ellipse cx="256" cy="448" rx="236" ry="34" fill="#8EDB8A"/>
+  <!-- giraffe (behind the right post) -->
+  <g stroke="#C98A2B" stroke-width="7" stroke-linejoin="round">
+    <path d="M398 440 L404 120 Q406 96 428 96 Q450 96 450 120 L446 440 Z" fill="#FFD25E"/>
+    <path d="M420 44 v26 M444 42 v26" stroke-linecap="round"/>
+    <ellipse cx="434" cy="88" rx="40" ry="32" fill="#FFD25E"/>
+    <ellipse cx="462" cy="100" rx="24" ry="18" fill="#FFE7A6"/>
+    <ellipse cx="398" cy="78" rx="16" ry="9" transform="rotate(-25 398 78)" fill="#FFD25E"/>
+  </g>
+  <g fill="#C98A2B">
+    <circle cx="420" cy="40" r="8"/><circle cx="444" cy="38" r="8"/>
+    <circle cx="420" cy="160" r="10"/><circle cx="434" cy="210" r="8"/><circle cx="418" cy="252" r="9"/><circle cx="434" cy="300" r="8"/>
+    <circle cx="430" cy="82" r="6" fill="#333"/>
+    <circle cx="466" cy="98" r="3.5" fill="#B07320"/>
+  </g>
+  <path d="M446 110 q10 6 20 2" stroke="#B07320" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <!-- gate bars -->
+  <g stroke="#54A0FF" stroke-width="12" stroke-linecap="round">
+    <path d="M160 240 H352 M160 430 H352"/>
+    <path d="M182 240 V430 M214 240 V430 M246 240 V430 M278 240 V430 M310 240 V430 M338 240 V430"/>
+  </g>
+  <!-- posts -->
+  <g fill="#FFB86B" stroke="#D98A3D" stroke-width="7" stroke-linejoin="round">
+    <rect x="98" y="176" width="54" height="266" rx="10"/>
+    <rect x="360" y="176" width="54" height="266" rx="10"/>
+    <rect x="88" y="162" width="74" height="28" rx="10"/>
+    <rect x="350" y="162" width="74" height="28" rx="10"/>
+  </g>
+  <!-- sign with little flags -->
+  <g stroke-linecap="round">
+    <path d="M176 128 V92 M256 120 V80 M336 128 V92" stroke="#8E6A48" stroke-width="6"/>
+    <path d="M176 92 l30 10 l-30 10 z" fill="#FFD93D"/>
+    <path d="M256 80 l30 10 l-30 10 z" fill="#6BCB77"/>
+    <path d="M336 92 l30 10 l-30 10 z" fill="#4D96FF"/>
+  </g>
+  <path d="M104 172 Q256 96 408 172 L408 216 Q256 150 104 216 Z" fill="#FF6B6B" stroke="#E04E4E" stroke-width="7" stroke-linejoin="round"/>
+  <text x="256" y="196" text-anchor="middle" font-family="Arial Rounded MT Bold, Arial Black, Arial, Helvetica, sans-serif" font-weight="900" font-size="58" fill="#FFFFFF" letter-spacing="6">ZOO</text>
+  <!-- elephant (peeking round the left post) -->
+  <g stroke="#7E8FA6" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M70 348 Q40 392 52 420 Q60 436 76 426" fill="none" stroke-width="26"/>
+    <path d="M70 348 Q40 392 52 420 Q60 436 76 426" fill="none" stroke="#B9C6D8" stroke-width="13"/>
+    <circle cx="86" cy="320" r="52" fill="#B9C6D8"/>
+    <ellipse cx="40" cy="310" rx="30" ry="44" fill="#B9C6D8"/>
+  </g>
+  <ellipse cx="42" cy="312" rx="16" ry="28" fill="#F7B8C8"/>
+  <circle cx="92" cy="306" r="7" fill="#333"/>
+  <circle cx="94" cy="304" r="2.5" fill="#FFF"/>
+  <circle cx="106" cy="334" r="9" fill="#F7B8C8" opacity="0.8"/>
+</svg>

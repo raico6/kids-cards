@@ -26,5 +26,6 @@ window.PICTURE_MAP = {
   igloo: 'images/igloo.svg',
   quilt: 'images/quilt.svg',
   xylophone: 'images/xylophone.svg',
-  yogurt: 'images/yogurt.svg', yoghurt: 'images/yogurt.svg'
+  yogurt: 'images/yogurt.svg', yoghurt: 'images/yogurt.svg',
+  zoo: 'images/zoo.svg'
 };
