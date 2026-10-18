@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- patchwork quilt, slightly tilted, with a folded corner -->
+  <g transform="rotate(-6 256 256)">
+    <rect x="70" y="86" width="372" height="340" rx="34" fill="#FF8FA3"/>
+    <g>
+      <rect x="92" y="108" width="104" height="92" rx="14" fill="#FFD93D"/>
+      <rect x="204" y="108" width="104" height="92" rx="14" fill="#6BCB77"/>
+      <rect x="316" y="108" width="104" height="92" rx="14" fill="#4D96FF"/>
+      <rect x="92" y="210" width="104" height="92" rx="14" fill="#4D96FF"/>
+      <rect x="204" y="210" width="104" height="92" rx="14" fill="#FFFFFF"/>
+      <rect x="316" y="210" width="104" height="92" rx="14" fill="#FFD93D"/>
+      <rect x="92" y="312" width="104" height="92" rx="14" fill="#6BCB77"/>
+      <rect x="204" y="312" width="104" height="92" rx="14" fill="#FFD93D"/>
+      <rect x="316" y="312" width="104" height="92" rx="14" fill="#C9B6FF"/>
+    </g>
+    <!-- stitches -->
+    <g fill="none" stroke="#FFFFFF" stroke-width="5" stroke-dasharray="12 10" stroke-linecap="round">
+      <rect x="82" y="98" width="348" height="316" rx="26"/>
+    </g>
+    <g fill="none" stroke="#C0587A" stroke-width="4" stroke-dasharray="9 8" stroke-linecap="round" opacity="0.7">
+      <rect x="102" y="118" width="84" height="72" rx="8"/>
+      <rect x="214" y="220" width="84" height="72" rx="8"/>
+      <rect x="326" y="322" width="84" height="72" rx="8"/>
+    </g>
+    <!-- heart and star patches -->
+    <path d="M256 276 c-28 -20 -36 -44 -18 -54 c10 -6 18 0 18 8 c0 -8 8 -14 18 -8 c18 10 10 34 -18 54 z" fill="#FF6B6B"/>
+    <path d="M144 132 l9 19 l21 3 l-15 14 l4 21 l-19 -10 l-19 10 l4 -21 l-15 -14 l21 -3 z" fill="#FFFFFF"/>
+    <!-- folded corner -->
+    <path d="M442 352 L442 392 Q442 426 408 426 L368 426 Z" fill="#E86F88"/>
+    <path d="M442 352 L368 426 L380 368 Z" fill="#FFB3C1"/>
+  </g>
+</svg>

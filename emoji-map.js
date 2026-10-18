@@ -19,3 +19,12 @@ window.EMOJI_MAP = {
   // colors
   red:'🔴', blue:'🔵', green:'🟢', yellow:'🟡', purple:'🟣', brown:'🟤', black:'⚫', white:'⚪', pink:'🩷', grey:'🩶', gray:'🩶'
 };
+
+// Drawn pictures for words with no fitting emoji. These take priority over EMOJI_MAP.
+window.PICTURE_MAP = {
+  elbow: 'images/elbow.svg',
+  igloo: 'images/igloo.svg',
+  quilt: 'images/quilt.svg',
+  xylophone: 'images/xylophone.svg',
+  yogurt: 'images/yogurt.svg', yoghurt: 'images/yogurt.svg'
+};

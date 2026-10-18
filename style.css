@@ -23,6 +23,7 @@ button { font-family: inherit; cursor: pointer; border: none; touch-action: mani
 .tile:active { transform: scale(0.92) translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,0.15); }
 .tile .big { font-size: 54px; font-weight: 900; line-height: 1; text-shadow: 0 3px 0 rgba(0,0,0,0.15); }
 .tile .emo { font-size: 30px; margin-top: 4px; line-height: 1; }
+.tile .emo img { width: 1.2em; height: 1.2em; display: block; }
 @media (min-width: 600px) { .tiles { grid-template-columns: repeat(4, 1fr); max-width: 900px; margin: 0 auto; width: 100%; } .tile .big { font-size: 72px; } .tile .emo { font-size: 40px; } }
 @media (min-width: 900px) { .tiles { grid-template-columns: repeat(6, 1fr); } }
 

@@ -111,8 +111,10 @@
       const b = document.createElement('button');
       b.className = 'tile'; b.style.background = CardGen.letterPalette(L)[0];
       const first = usable(L)[0];
-      const emo = first ? ((first.emoji && first.emoji.trim()) || CardGen.lookupEmoji(first.en) || '') : '';
-      b.innerHTML = `<span class="big">${L}${L.toLowerCase()}</span><span class="emo">${emo}</span>`;
+      const custom = first && first.emoji && first.emoji.trim();
+      const pic = first && !custom ? CardGen.lookupPicture(first.en) : null;
+      const emo = first ? (custom || CardGen.lookupEmoji(first.en) || '') : '';
+      b.innerHTML = `<span class="big">${L}${L.toLowerCase()}</span><span class="emo">${pic ? `<img src="${pic}" alt="">` : emo}</span>`;
       b.setAttribute('aria-label', L);
       b.addEventListener('click', () => openLetter(L));
       box.appendChild(b);
@@ -227,7 +229,9 @@
       row.querySelector('.del').addEventListener('click', () => { if (confirm(`删除 "${w.en || '(空)'}"？`)) { words[L].splice(i, 1); save(); renderEditor(); } });
       row.querySelector('.up').addEventListener('click', () => { if (i > 0) { [words[L][i - 1], words[L][i]] = [words[L][i], words[L][i - 1]]; save(); renderEditor(); } });
       row.querySelector('.dl').addEventListener('click', () => {
-        const c = document.createElement('canvas'); CardGen.renderWordCard(c, w); CardGen.downloadCanvas(c, `${L}-${fileSafe(w.en)}.png`);
+        CardGen.picturesReady().then(() => {
+          const c = document.createElement('canvas'); CardGen.renderWordCard(c, w); CardGen.downloadCanvas(c, `${L}-${fileSafe(w.en)}.png`);
+        });
       });
       list.appendChild(row);
     });
@@ -321,8 +325,8 @@
     show('print');
     $('printCount').textContent = '正在排版…';
     const run = () => { if ($('print').classList.contains('active')) renderPrint(); };
-    if (document.fonts && document.fonts.status !== 'loaded') document.fonts.ready.then(run);
-    else setTimeout(run, 30);
+    const fonts = document.fonts && document.fonts.status !== 'loaded' ? document.fonts.ready : new Promise(r => setTimeout(r, 30));
+    Promise.all([fonts, CardGen.picturesReady()]).then(run);
   }
   $('openPrint').addEventListener('click', openPrint);
   $('printBack').addEventListener('click', () => { $('printPages').innerHTML = ''; show('settings'); });
